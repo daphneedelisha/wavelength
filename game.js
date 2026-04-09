@@ -253,7 +253,7 @@ function renderHome() {
     ${S.error ? `<p style="color:#f87171;font-size:13px;margin-bottom:16px">${he(S.error)}</p>` : ""}
     <div class="col" style="width:280px;gap:10px">
       <input class="inp" placeholder="your name" value="${he(S.nameInput)}"
-        oninput="S.nameInput=this.value;render()" style="text-align:center">
+        oninput="S.nameInput=this.value;document.querySelectorAll('.btn-primary,.btn-secondary').forEach(b=>b.disabled=!this.value.trim())"
       <button class="btn btn-primary" onclick="createLobby()" ${!S.nameInput.trim()?"disabled":""}>create lobby</button>
       <button class="btn btn-secondary" onclick="S.screen='join';S.error='';render()" ${!S.nameInput.trim()?"disabled":""}>join lobby</button>
     </div>
@@ -270,7 +270,7 @@ function renderJoin() {
     <div style="max-width:220px;margin:0 auto">
       <input class="inp inp-code mb12" placeholder="XXXX" maxlength="4"
         value="${he(S.joinInput)}"
-        oninput="S.joinInput=this.value.toUpperCase();this.value=S.joinInput;render()"
+        oninput="S.joinInput=this.value.toUpperCase();this.value=S.joinInput;document.querySelector('.btn-primary').disabled=this.value.length<4"
       <button class="btn btn-primary" onclick="joinLobby()" ${S.joinInput.length < 4 ? "disabled" : ""}>join →</button>
     </div>
   </div>`;
@@ -330,7 +330,7 @@ function renderGame() {
       <p class="t-label mb6">your clue (word or phrase — no numbers)</p>
       <input id="clue-inp" class="inp" placeholder='e.g. "lukewarm"'
         value="${he(S.clueInput)}"
-        oninput="S.clueInput=this.value;render()"
+        oninput="S.clueInput=this.value;document.querySelector('.btn-primary').disabled=!this.value.trim()"
         onkeydown="if(event.key==='Enter')submitClue()"
         autofocus>
     </div>
