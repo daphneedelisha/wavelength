@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════
 const SERVER = window.location.hostname === "localhost"
   ? "http://localhost:3001"
-  : "https://wavelength-production-f176.up.railway.app"; // ← paste your Railway URL here
+  : "https://wavelength-production-f176.up.railway.app";
 
 // ═══════════════════════════════════════════════════
 //  COLORS
@@ -15,7 +15,7 @@ function pc(i) { return COLORS[i % COLORS.length]; }
 //  STATE
 // ═══════════════════════════════════════════════════
 let S = {
-  screen:     "home",   // home | join | lobby | game
+  screen:     "home",
   nameInput:  "",
   joinInput:  "",
   clueInput:  "",
@@ -23,7 +23,7 @@ let S = {
   error:      "",
   playerIdx:  null,
   code:       "",
-  lobby:      null,     // authoritative state from server
+  lobby:      null,
 };
 
 // ═══════════════════════════════════════════════════
@@ -42,7 +42,6 @@ socket.on("connect_error", () => {
   render();
 });
 
-// Server confirmed we joined a lobby
 socket.on("joined", ({ code, playerIdx, lobby }) => {
   S.code      = code;
   S.playerIdx = playerIdx;
@@ -52,7 +51,6 @@ socket.on("joined", ({ code, playerIdx, lobby }) => {
   render();
 });
 
-// Server pushed a new game state
 socket.on("state", (lobby) => {
   S.lobby = lobby;
   if (lobby.phase !== "lobby") S.screen = "game";
@@ -60,7 +58,6 @@ socket.on("state", (lobby) => {
   render();
 });
 
-// Server sent an error message
 socket.on("err", (msg) => {
   S.error = msg;
   render();
@@ -224,7 +221,7 @@ function initDial(onPosChange) {
 // ═══════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════
-function he(s) { // html escape
+function he(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
@@ -253,7 +250,9 @@ function renderHome() {
     ${S.error ? `<p style="color:#f87171;font-size:13px;margin-bottom:16px">${he(S.error)}</p>` : ""}
     <div class="col" style="width:280px;gap:10px">
       <input class="inp" placeholder="your name" value="${he(S.nameInput)}"
-        oninput="S.nameInput=this.value"
+        oninput="S.nameInput=this.value">
+      <button class="btn btn-primary" onclick="createLobby()">create lobby</button>
+      <button class="btn btn-secondary" onclick="S.screen='join';S.error='';render()">join lobby</button>
     </div>
   </div>`;
 }
@@ -268,7 +267,8 @@ function renderJoin() {
     <div style="max-width:220px;margin:0 auto">
       <input class="inp inp-code mb12" placeholder="XXXX" maxlength="4"
         value="${he(S.joinInput)}"
-        oninput="S.joinInput=this.value.toUpperCase();this.value=S.joinInput"
+        oninput="S.joinInput=this.value.toUpperCase();this.value=S.joinInput">
+      <button class="btn btn-primary" onclick="joinLobby()">join →</button>
     </div>
   </div>`;
 }
@@ -309,7 +309,6 @@ function renderGame() {
   const isIT  = S.playerIdx === itIdx;
   const ni    = players.map((_,i) => i).filter(i => i !== itIdx);
 
-  // ── psychic's turn to give clue ──────────────
   if (phase === "it_clue" && isIT) return `
   <div class="page-full">
     <div class="row-sb mb8">
@@ -331,10 +330,9 @@ function renderGame() {
         onkeydown="if(event.key==='Enter')submitClue()"
         autofocus>
     </div>
-    <button class="btn btn-primary" onclick="submitClue()" ${!S.clueInput?.trim() ? "disabled" : ""}>submit clue →</button>
+    <button class="btn btn-primary" onclick="submitClue()">submit clue →</button>
   </div>`;
 
-  // ── waiting for psychic ───────────────────────
   if (phase === "it_clue" && !isIT) return `
   <div class="page-center">
     <p class="t-label mb12">round ${round} of ${rounds}</p>
@@ -343,7 +341,6 @@ function renderGame() {
     <p class="t-muted">is thinking of a clue...</p>
   </div>`;
 
-  // ── your turn to guess ────────────────────────
   if (phase === "guest_guess" && S.playerIdx === curGuest) return `
   <div class="page-full">
     <div class="row-sb mb6">
@@ -363,7 +360,6 @@ function renderGame() {
     <button class="btn btn-primary mt8" onclick="submitGuess()">lock in guess →</button>
   </div>`;
 
-  // ── waiting for someone else to guess ─────────
   if (phase === "guest_guess" && S.playerIdx !== curGuest) {
     const guestName = players[curGuest]?.name || "";
     return `
@@ -379,7 +375,6 @@ function renderGame() {
     </div>`;
   }
 
-  // ── reveal ────────────────────────────────────
   if (phase === "reveal") {
     const ag = Object.entries(guesses).map(([pi,p]) => ({
       pos: p, name: players[+pi]?.name || "", color: pc(+pi)
@@ -415,7 +410,6 @@ function renderGame() {
     </div>`;
   }
 
-  // ── leaderboard ───────────────────────────────
   if (phase === "leaderboard" || phase === "gameover") {
     const over   = phase === "gameover";
     const sorted = [...players.map((p,i) => ({ n:p.name, i, s:p.score }))].sort((a,b) => b.s - a.s);
@@ -463,13 +457,14 @@ function renderGame() {
 // ═══════════════════════════════════════════════════
 function createLobby() {
   const name = S.nameInput.trim();
-  if (!name) return;
+  if (!name) { S.error = "enter your name first"; render(); return; }
   socket.emit("create_lobby", { playerName: name, rounds: 5, isPrivate: true });
 }
 
 function joinLobby() {
   const name = S.nameInput.trim();
-  if (!name || S.joinInput.length < 4) return;
+  if (!name) { S.error = "enter your name first"; render(); return; }
+  if (S.joinInput.length < 4) { S.error = "enter a 4-letter room code"; render(); return; }
   socket.emit("join_lobby", { code: S.joinInput, playerName: name });
 }
 
@@ -494,7 +489,6 @@ function render() {
 
   document.getElementById("app").innerHTML = html;
 
-  // init drag only for the active guesser
   if (S.screen === "game" && S.lobby?.phase === "guest_guess" && S.playerIdx === S.lobby.curGuest) {
     _cleanupDial = initDial(p => {
       const el = document.getElementById("pos-label");
