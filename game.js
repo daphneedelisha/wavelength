@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════
 const SERVER = window.location.hostname === "localhost"
   ? "http://localhost:3001"
-  : "https://YOUR-RAILWAY-URL.up.railway.app"; // ← paste your Railway URL here
+  : "https://wavelength-production-509e.up.railway.app"; // ← paste your Railway URL here
 
 // ═══════════════════════════════════════════════════
 //  COLORS
