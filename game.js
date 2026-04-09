@@ -232,9 +232,9 @@ function av(name, color, size=40) {
 
 function legend() {
   return `<div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>100 pts</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>50–99</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>1–49</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>71–100</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>41–70</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>1–40</div>
   </div>`;
 }
 

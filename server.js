@@ -27,9 +27,9 @@ function randCode() { return Math.random().toString(36).slice(2,6).toUpperCase()
 
 function score(pos, target) {
   const d = Math.abs(pos - target);
-  if (d <= 5)  return 100;
-  if (d <= 15) return Math.round(50 + (15 - d) / 10 * 49);
-  if (d <= 30) return Math.round(1  + (30 - d) / 15 * 48);
+  if (d <= 5)  return Math.round(100 - (d / 5)         * 29); // 71–100
+  if (d <= 15) return Math.round(70  - ((d-5)  / 10)   * 29); // 41–70
+  if (d <= 30) return Math.round(40  - ((d-15) / 15)   * 39); // 1–40
   return 0;
 }
 
