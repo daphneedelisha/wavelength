@@ -1,0 +1,144 @@
+/* ── reset & base ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#0a0a0a;
+  color:#d8d8d8;
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── layout ───────────────────────────────────────── */
+#app{
+  max-width:540px;
+  margin:0 auto;
+  padding:28px 22px 52px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.page-center{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:48px 0;
+}
+.page-full{width:100%}
+.row{display:flex;gap:8px;align-items:center}
+.row-sb{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.col{display:flex;flex-direction:column}
+
+/* ── typography ───────────────────────────────────── */
+.t-game-title{
+  font-size:58px;font-weight:300;
+  letter-spacing:-0.03em;line-height:1;color:#f2f2f2;
+}
+.t-big{font-size:30px;font-weight:400;color:#f0f0f0}
+.t-label{
+  font-size:11px;color:#3a3a3a;
+  letter-spacing:0.07em;text-transform:uppercase;
+}
+.t-muted{font-size:13px;color:#484848}
+.t-clue{font-size:30px;font-weight:300;color:#f0f0f0;font-style:italic;line-height:1.2}
+.t-mono{font-size:38px;font-weight:300;letter-spacing:0.18em;color:#f0f0f0;font-family:'SF Mono','Fira Code',monospace}
+
+/* ── buttons ──────────────────────────────────────── */
+.btn{
+  font-family:inherit;cursor:pointer;
+  border-radius:8px;font-size:14px;
+  transition:all 0.1s;
+}
+.btn-primary{
+  width:100%;padding:12px 24px;
+  background:#e8e8e8;color:#0a0a0a;
+  border:none;font-weight:500;
+}
+.btn-primary:hover{background:#fff}
+.btn-primary:disabled{opacity:0.3;cursor:default}
+.btn-secondary{
+  width:100%;padding:12px 24px;
+  background:transparent;color:#aaa;
+  border:1px solid #1e1e1e;
+}
+.btn-secondary:hover{border-color:#333;color:#d8d8d8}
+.btn-sm{
+  padding:7px 14px;width:auto;
+  background:transparent;color:#888;
+  border:1px solid #1e1e1e;font-size:12px;
+}
+.btn-sm:hover{border-color:#333;color:#bbb}
+.btn-sm.on{border-color:#333;color:#e0e0e0;background:#181818}
+
+/* ── inputs ───────────────────────────────────────── */
+.inp{
+  width:100%;padding:10px 14px;
+  background:transparent;color:#e0e0e0;
+  border:1px solid #1c1c1c;border-radius:8px;
+  font-size:14px;font-family:inherit;outline:none;
+}
+.inp:focus{border-color:#333}
+.inp::placeholder{color:#2c2c2c}
+.inp-code{
+  text-align:center;font-size:30px;letter-spacing:0.2em;
+  font-family:'SF Mono','Fira Code',monospace;
+  padding:12px;text-transform:uppercase;
+}
+
+/* ── sections / cards ─────────────────────────────── */
+.sec{
+  border:1px solid #161616;border-radius:12px;
+  padding:16px 20px;width:100%;
+}
+
+/* ── player chips ─────────────────────────────────── */
+.chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:20px;
+  background:#0f0f0f;border:1px solid #1e1e1e;
+  font-size:13px;color:#b0b0b0;
+}
+.chip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.chip-rm{
+  background:none;border:none;cursor:pointer;
+  color:#333;font-size:16px;line-height:1;
+  padding:0 0 0 2px;font-family:inherit;
+}
+.chip-rm:hover{color:#888}
+
+/* ── avatar ───────────────────────────────────────── */
+.av{
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;font-weight:500;flex-shrink:0;
+}
+
+/* ── score list ───────────────────────────────────── */
+.score-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid #141414;
+}
+.score-row:last-child{border-bottom:none}
+
+/* ── leaderboard bar ──────────────────────────────── */
+.lb-bar{height:3px;border-radius:2px;background:#161616;overflow:hidden;margin-top:7px}
+.lb-fill{height:100%;border-radius:2px;transition:width 0.7s ease}
+
+/* ── legend ───────────────────────────────────────── */
+.legend{display:flex;gap:14px;align-items:center;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#3a3a3a}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ── footer ───────────────────────────────────────── */
+footer{
+  text-align:center;padding-bottom:12px;
+  font-size:11px;color:#252525;letter-spacing:0.04em;
+}
+
+/* ── spacing helpers ──────────────────────────────── */
+.mt4{margin-top:4px}.mt6{margin-top:6px}.mt8{margin-top:8px}
+.mt10{margin-top:10px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.mt20{margin-top:20px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+.mb4{margin-bottom:4px}.mb6{margin-bottom:6px}.mb8{margin-bottom:8px}
+.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+.mb20{margin-bottom:20px}.mb24{margin-bottom:24px}.mb32{margin-bottom:32px}
+.mb40{margin-bottom:40px}.mb48{margin-bottom:48px}
