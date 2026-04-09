@@ -270,7 +270,7 @@ function renderJoin() {
     <div style="max-width:220px;margin:0 auto">
       <input class="inp inp-code mb12" placeholder="XXXX" maxlength="4"
         value="${he(S.joinInput)}"
-        oninput="S.joinInput=this.value.toUpperCase();this.value=S.joinInput">
+        oninput="S.joinInput=this.value.toUpperCase();this.value=S.joinInput;render()"
       <button class="btn btn-primary" onclick="joinLobby()" ${S.joinInput.length < 4 ? "disabled" : ""}>join →</button>
     </div>
   </div>`;
@@ -330,7 +330,7 @@ function renderGame() {
       <p class="t-label mb6">your clue (word or phrase — no numbers)</p>
       <input id="clue-inp" class="inp" placeholder='e.g. "lukewarm"'
         value="${he(S.clueInput)}"
-        oninput="S.clueInput=this.value"
+        oninput="S.clueInput=this.value;render()"
         onkeydown="if(event.key==='Enter')submitClue()"
         autofocus>
     </div>
