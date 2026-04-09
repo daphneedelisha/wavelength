@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-//  CONFIG — update SERVER after Railway deploy
+//  CONFIG
 // ═══════════════════════════════════════════════════
 const SERVER = window.location.hostname === "localhost"
   ? "http://localhost:3001"
@@ -15,15 +15,16 @@ function pc(i) { return COLORS[i % COLORS.length]; }
 //  STATE
 // ═══════════════════════════════════════════════════
 let S = {
-  screen:     "home",
-  nameInput:  "",
-  joinInput:  "",
-  clueInput:  "",
-  needlePos:  50,
-  error:      "",
-  playerIdx:  null,
-  code:       "",
-  lobby:      null,
+  screen:      "home",
+  nameInput:   "",
+  joinInput:   "",
+  clueInput:   "",
+  roundsInput: 5,
+  needlePos:   50,
+  error:       "",
+  playerIdx:   null,
+  code:        "",
+  lobby:       null,
 };
 
 // ═══════════════════════════════════════════════════
@@ -53,8 +54,7 @@ socket.on("joined", ({ code, playerIdx, lobby }) => {
 
 socket.on("state", (lobby) => {
   S.lobby = lobby;
-  if (lobby.phase !== "lobby") S.screen = "game";
-  else S.screen = "lobby";
+  S.screen = lobby.phase === "lobby" ? "lobby" : "game";
   render();
 });
 
@@ -127,14 +127,14 @@ function dialSVG({ showLabels=false, left="", right="", showZone=false,
 
   if (showZone && !reveal) {
     s += `<path d="${band(RO,RI,Math.max(0,t-30),Math.min(100,t+30))}" fill="#f97316" opacity="0.1"/>`;
-    s += `<path d="${band(RO,RI,Math.max(0,t-20),Math.min(100,t+20))}" fill="#f59e0b" opacity="0.18"/>`;
-    s += `<path d="${band(RO,RI,Math.max(0,t-10),Math.min(100,t+10))}" fill="#34d399" opacity="0.36"/>`;
+    s += `<path d="${band(RO,RI,Math.max(0,t-15),Math.min(100,t+15))}" fill="#f59e0b" opacity="0.18"/>`;
+    s += `<path d="${band(RO,RI,Math.max(0,t-5), Math.min(100,t+5))}"  fill="#34d399" opacity="0.36"/>`;
   }
 
   if (reveal) {
     s += `<path d="${band(RO,RI,Math.max(0,t-30),Math.min(100,t+30))}" fill="#f97316" opacity="0.16"/>`;
-    s += `<path d="${band(RO,RI,Math.max(0,t-20),Math.min(100,t+20))}" fill="#f59e0b" opacity="0.26"/>`;
-    s += `<path d="${band(RO,RI,Math.max(0,t-10),Math.min(100,t+10))}" fill="#34d399" opacity="0.42"/>`;
+    s += `<path d="${band(RO,RI,Math.max(0,t-15),Math.min(100,t+15))}" fill="#f59e0b" opacity="0.26"/>`;
+    s += `<path d="${band(RO,RI,Math.max(0,t-5), Math.min(100,t+5))}"  fill="#34d399" opacity="0.42"/>`;
     guesses.forEach(g => { s += `<g>${needleSVG(g.pos, g.color, 1, g.name)}</g>`; });
     s += `<g>${needleSVG(t, "#34d399", 1.4, "target")}</g>`;
   }
@@ -232,16 +232,30 @@ function av(name, color, size=40) {
 
 function legend() {
   return `<div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>4 pts</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>3 pts</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>2 pts</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>100 pts</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>50–99</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>1–49</div>
   </div>`;
+}
+
+function scoreColor(pts) {
+  if (pts === 100) return "#34d399";
+  if (pts >= 50)   return "#f59e0b";
+  if (pts >= 1)    return "#f97316";
+  return "#2a2a2a";
+}
+
+function scoreLabel(pts) {
+  if (pts === 100) return " 🎯";
+  if (pts >= 50)   return " ✓";
+  return "";
 }
 
 // ═══════════════════════════════════════════════════
 //  SCREENS
 // ═══════════════════════════════════════════════════
 function renderHome() {
+  const roundOpts = [3, 5, 7, 10];
   return `
   <div class="page-center">
     <p class="t-label mb12" style="letter-spacing:.1em">a party game of</p>
@@ -251,6 +265,18 @@ function renderHome() {
     <div class="col" style="width:280px;gap:10px">
       <input class="inp" placeholder="your name" value="${he(S.nameInput)}"
         oninput="S.nameInput=this.value">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <p class="t-label" style="text-align:center">rounds</p>
+        <div style="display:flex;gap:6px;justify-content:center">
+          ${roundOpts.map(r => `
+            <button onclick="S.roundsInput=${r};render()"
+              style="flex:1;padding:8px 0;border-radius:6px;font-size:13px;cursor:pointer;
+                border:1px solid ${S.roundsInput===r?"#a78bfa":"#222"};
+                background:${S.roundsInput===r?"#a78bfa22":"#111"};
+                color:${S.roundsInput===r?"#a78bfa":"#555"}">${r}</button>
+          `).join("")}
+        </div>
+      </div>
       <button class="btn btn-primary" onclick="createLobby()">create lobby</button>
       <button class="btn btn-secondary" onclick="S.screen='join';S.error='';render()">join lobby</button>
     </div>
@@ -279,7 +305,8 @@ function renderLobby() {
   return `
   <div class="page-full">
     <p class="t-label mb4">room code — share this</p>
-    <p class="t-mono mb20">${he(S.code)}</p>
+    <p class="t-mono mb4">${he(S.code)}</p>
+    <p class="t-label mb20" style="color:#555">${L.rounds} rounds</p>
     <p class="t-label mb8">players (${L.players.length}/8)</p>
     <div class="sec mb20">
       ${L.players.map((p, i) => `
@@ -303,12 +330,15 @@ function renderGame() {
   const L = S.lobby;
   if (!L) return `<div class="page-center"><p class="t-muted">loading...</p></div>`;
 
-  const { phase, itIdx, curGuest, spec, target, clue, guesses, roundScores, players, round, rounds } = L;
-  const itp   = players[itIdx]?.name || "";
-  const itCol = pc(itIdx);
-  const isIT  = S.playerIdx === itIdx;
-  const ni    = players.map((_,i) => i).filter(i => i !== itIdx);
+  const { phase, itIdx, spec, target, clue, guesses, roundScores, players, round, rounds } = L;
+  const itp    = players[itIdx]?.name || "";
+  const itCol  = pc(itIdx);
+  const isIT   = S.playerIdx === itIdx;
+  const ni     = players.map((_,i) => i).filter(i => i !== itIdx);
+  const myGuess = guesses?.[S.playerIdx];
+  const hasGuessed = myGuess !== undefined;
 
+  // ── psychic gives clue ────────────────────────
   if (phase === "it_clue" && isIT) return `
   <div class="page-full">
     <div class="row-sb mb8">
@@ -333,6 +363,7 @@ function renderGame() {
     <button class="btn btn-primary" onclick="submitClue()">submit clue →</button>
   </div>`;
 
+  // ── psychic waiting for clue phase ───────────
   if (phase === "it_clue" && !isIT) return `
   <div class="page-center">
     <p class="t-label mb12">round ${round} of ${rounds}</p>
@@ -341,40 +372,81 @@ function renderGame() {
     <p class="t-muted">is thinking of a clue...</p>
   </div>`;
 
-  if (phase === "guest_guess" && S.playerIdx === curGuest) return `
-  <div class="page-full">
-    <div class="row-sb mb6">
-      <span class="t-label">round ${round} / ${rounds}</span>
-      <div class="row" style="gap:6px">${av(players[S.playerIdx]?.name||"",pc(S.playerIdx),20)}<span class="t-label">your turn</span></div>
-    </div>
-    <div class="sec mb10" style="text-align:center">
-      <p class="t-label mb4">the clue is</p>
-      <p class="t-clue">"${he(clue)}"</p>
-    </div>
-    ${dialSVG({ interactive:true, playerPos:S.needlePos, showLabels:true, left:spec?.[0]||"", right:spec?.[1]||"" })}
-    <div class="row-sb mt4 mb4" style="padding:0 8px">
-      <span style="font-size:12px;color:#383838">${he((spec?.[0]||"").toLowerCase())}</span>
-      <p id="pos-label" class="t-label">${Math.round(S.needlePos)}%</p>
-      <span style="font-size:12px;color:#383838">${he((spec?.[1]||"").toLowerCase())}</span>
-    </div>
-    <button class="btn btn-primary mt8" onclick="submitGuess()">lock in guess →</button>
-  </div>`;
+  // ── guessing phase — everyone guesses at once ─
+  if (phase === "guest_guess") {
+    // psychic watches
+    if (isIT) {
+      const guessedCount  = Object.keys(guesses || {}).length;
+      const totalGuessers = ni.length;
+      return `
+      <div class="page-center">
+        <p class="t-label mb12">round ${round} of ${rounds}</p>
+        <div class="sec mb16" style="text-align:center;width:100%">
+          <p class="t-label mb4">your clue</p>
+          <p class="t-clue">"${he(clue)}"</p>
+        </div>
+        <p class="t-muted mb16">${guessedCount} / ${totalGuessers} guessed</p>
+        <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+          ${ni.map(pi => {
+            const done = guesses?.[pi] !== undefined;
+            return `<div class="row" style="gap:10px;opacity:${done?1:0.35}">
+              ${av(players[pi]?.name||"", pc(pi), 28)}
+              <span style="font-size:13px;color:${done?"#e0e0e0":"#555"}">${he(players[pi]?.name||"")}</span>
+              <span style="margin-left:auto;font-size:12px;color:${done?"#34d399":"#333"}">${done?"locked in":"..."}</span>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }
 
-  if (phase === "guest_guess" && S.playerIdx !== curGuest) {
-    const guestName = players[curGuest]?.name || "";
+    // guesser who has already locked in
+    if (hasGuessed) {
+      const guessedCount  = Object.keys(guesses || {}).length;
+      const totalGuessers = ni.length;
+      return `
+      <div class="page-center">
+        <p class="t-label mb12">round ${round} of ${rounds}</p>
+        <div class="sec mb16" style="text-align:center;width:100%">
+          <p class="t-label mb4">the clue is</p>
+          <p class="t-clue">"${he(clue)}"</p>
+        </div>
+        <p style="color:#34d399;font-size:13px;margin-bottom:20px">✓ locked in!</p>
+        <p class="t-muted mb16">${guessedCount} / ${totalGuessers} guessed</p>
+        <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+          ${ni.map(pi => {
+            const done = guesses?.[pi] !== undefined;
+            return `<div class="row" style="gap:10px;opacity:${done?1:0.35}">
+              ${av(players[pi]?.name||"", pc(pi), 28)}
+              <span style="font-size:13px;color:${done?"#e0e0e0":"#555"}">${he(players[pi]?.name||"")}</span>
+              <span style="margin-left:auto;font-size:12px;color:${done?"#34d399":"#333"}">${done?"locked in":"..."}</span>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }
+
+    // guesser's turn to place needle
     return `
-    <div class="page-center">
-      <p class="t-label mb12">round ${round} of ${rounds}</p>
-      <div class="sec mb20" style="text-align:center;width:100%">
+    <div class="page-full">
+      <div class="row-sb mb6">
+        <span class="t-label">round ${round} / ${rounds}</span>
+        <span class="t-label">${Object.keys(guesses||{}).length} / ${ni.length} guessed</span>
+      </div>
+      <div class="sec mb10" style="text-align:center">
         <p class="t-label mb4">the clue is</p>
         <p class="t-clue">"${he(clue)}"</p>
       </div>
-      <div style="font-size:12px;color:#383838;margin-bottom:12px">${he((spec?.[0]||"").toLowerCase())} ←——→ ${he((spec?.[1]||"").toLowerCase())}</div>
-      <div class="mb8">${av(guestName, pc(curGuest), 42)}</div>
-      <p class="t-muted">${he(guestName)} is guessing...</p>
+      ${dialSVG({ interactive:true, playerPos:S.needlePos, showLabels:true, left:spec?.[0]||"", right:spec?.[1]||"" })}
+      <div class="row-sb mt4 mb4" style="padding:0 8px">
+        <span style="font-size:12px;color:#383838">${he((spec?.[0]||"").toLowerCase())}</span>
+        <p id="pos-label" class="t-label">${Math.round(S.needlePos)}%</p>
+        <span style="font-size:12px;color:#383838">${he((spec?.[1]||"").toLowerCase())}</span>
+      </div>
+      <button class="btn btn-primary mt8" onclick="submitGuess()">lock in →</button>
     </div>`;
   }
 
+  // ── reveal ────────────────────────────────────
   if (phase === "reveal") {
     const ag = Object.entries(guesses).map(([pi,p]) => ({
       pos: p, name: players[+pi]?.name || "", color: pc(+pi)
@@ -392,10 +464,9 @@ function renderGame() {
         <p class="t-label mb4">this round</p>
         ${ni.map(pi => {
           const pts = roundScores?.[pi] ?? 0;
-          const clr = pts===4?"#34d399":pts===3?"#f59e0b":pts===2?"#f97316":"#2a2a2a";
           return `<div class="score-row">
             <div class="row" style="gap:10px">${av(players[pi]?.name||"",pc(pi),26)}<span style="font-size:14px">${he(players[pi]?.name||"")}</span></div>
-            <span style="font-weight:500;color:${clr};font-size:14px">${pts} pts${pts===4?" 🎯":pts>=2?" ✓":""}</span>
+            <span style="font-weight:500;color:${scoreColor(pts)};font-size:14px">${pts} pts${scoreLabel(pts)}</span>
           </div>`;
         }).join("")}
         <div class="row-sb mt8" style="opacity:.3">
@@ -410,6 +481,7 @@ function renderGame() {
     </div>`;
   }
 
+  // ── leaderboard / gameover ────────────────────
   if (phase === "leaderboard" || phase === "gameover") {
     const over   = phase === "gameover";
     const sorted = [...players.map((p,i) => ({ n:p.name, i, s:p.score }))].sort((a,b) => b.s - a.s);
@@ -458,7 +530,7 @@ function renderGame() {
 function createLobby() {
   const name = S.nameInput.trim();
   if (!name) { S.error = "enter your name first"; render(); return; }
-  socket.emit("create_lobby", { playerName: name, rounds: 5, isPrivate: true });
+  socket.emit("create_lobby", { playerName: name, rounds: S.roundsInput });
 }
 
 function joinLobby() {
@@ -489,7 +561,13 @@ function render() {
 
   document.getElementById("app").innerHTML = html;
 
-  if (S.screen === "game" && S.lobby?.phase === "guest_guess" && S.playerIdx === S.lobby.curGuest) {
+  const L = S.lobby;
+  const shouldShowDial = S.screen === "game"
+    && L?.phase === "guest_guess"
+    && S.playerIdx !== L?.itIdx
+    && L?.guesses?.[S.playerIdx] === undefined;
+
+  if (shouldShowDial) {
     _cleanupDial = initDial(p => {
       const el = document.getElementById("pos-label");
       if (el) el.textContent = Math.round(p) + "%";
