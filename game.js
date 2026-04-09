@@ -253,7 +253,7 @@ function renderHome() {
     ${S.error ? `<p style="color:#f87171;font-size:13px;margin-bottom:16px">${he(S.error)}</p>` : ""}
     <div class="col" style="width:280px;gap:10px">
       <input class="inp" placeholder="your name" value="${he(S.nameInput)}"
-        oninput="S.nameInput=this.value" style="text-align:center">
+        oninput="S.nameInput=this.value;render()" style="text-align:center">
       <button class="btn btn-primary" onclick="createLobby()" ${!S.nameInput.trim()?"disabled":""}>create lobby</button>
       <button class="btn btn-secondary" onclick="S.screen='join';S.error='';render()" ${!S.nameInput.trim()?"disabled":""}>join lobby</button>
     </div>
